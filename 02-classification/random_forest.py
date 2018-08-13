@@ -118,11 +118,15 @@ class Classification:
 
 
         parser = argparse.ArgumentParser()
-        parser.add_argument("--ndvi", help="row of scene", required=False, default=False, type=bool)
-        parser.add_argument("--classify", help="classify scene", required=False, default=True, type=bool)
-        parser.add_argument("--n_estimators", help="number of estimators for random forrest classifier", required=False, default=10, type=int)
-        parser.add_argument("--validate", help="validate with 5 fold cross validation", required=False, default=False, type=bool)
+        parser.add_argument("--ndvi", help="add ndvi as new feature", action="store_true")
+        parser.add_argument("--classify", help="classify scene", action="store_true")
+        parser.add_argument("--n_estimators", help="number of estimators for random forrest classifier", required=True, type=int)
+        parser.add_argument("--validate", help="validate with 5 fold cross validation", action="store_true")
         args = parser.parse_args()
+        print(args.ndvi)
+        print(args.classify)
+        print(args.n_estimators)
+        print(args.validate)
         raster, sample = loadData(args)
         X, Y = preprocessData(raster, sample)
 

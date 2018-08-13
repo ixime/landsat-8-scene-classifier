@@ -20,15 +20,25 @@ else
 fi
 if [ -z "$NDVI" ]
 then
-    NDVI="FALSE"
+    NDVI=""
 else
-    echo $NDVI
+    if [ "$NDVI" = "True" ]
+    then
+        NDVI="--ndvi"
+    else
+        NDVI=""
+    fi
 fi
 if [ -z "$CLASSIFY" ]
 then
-    CLASSIFY="True"
+    CLASSIFY="--classify"
 else
-    echo $CLASSIFY
+    if [ "$CLASSIFY" = "True" ]
+    then
+        CLASSIFY="--classify"
+    else
+        CLASSIFY=""
+    fi
 fi
 if [ -z "$NESTIMATORS" ]
 then
@@ -38,12 +48,18 @@ else
 fi
 if [ -z "$VALIDATE" ]
 then
-    VALIDATE="False"
+    VALIDATE=""
 else
-    echo $VALIDATE
+    if [ "$VALIDATE" = "True" ]
+    then
+        VALIDATE="--validate"
+    else
+        VALIDATE=""
+    fi
+
 fi
 python 01-download/download.py --row $EEROW --path $EEPATH --date $EEDATE
 ./01-download/uncompress.sh
-python 02-classification/random_forest.py --ndvi $NDVI --classify $CLASSIFY --n_estimators $NESTIMATORS --validate $VALIDATE
+python 02-classification/random_forest-test.py $NDVI $CLASSIFY --n_estimators $NESTIMATORS $VALIDATE
 
 
