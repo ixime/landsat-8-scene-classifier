@@ -35,7 +35,7 @@ However, for simplicity this approaches were not implemented here.
 
 2. Save the training GeoTIFF `training.tif` inside the `data` directory  
 
-3. Register in (USGS)[https://earthexplorer.usgs.gov/]  
+3. Register in [USGS](https://earthexplorer.usgs.gov/)  
 
 4. Write the username and password in the `.env` file inside the `01-download` directory and change its permissions  
 ```
