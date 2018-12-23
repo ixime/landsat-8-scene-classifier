@@ -123,10 +123,11 @@ class Classification:
             X_train, X_val, y_train, y_val = train_test_split(X, y, random_state=1273483)
             rf.fit(X_train,y_train)
             print("Model trained successfully")
+            y_pred = rf.predict(X_val)
+            print("Accuracy: {}".format(metrics.accuracy_score(y_val, y_pred)))
+            print(metrics.classification_report(y_pred, y_val))
             raster = np.nan_to_num(raster)
             prediction = rf.predict(raster.reshape(raster.shape[0]*raster.shape[1],raster.shape[2]))
-            print("Accuracy: {}".format(metrics.accuracy_score(y_val, prediction)))
-            print(metrics.classification_report(prediction, y_val))
             prediction = prediction.reshape(raster[...,0].shape)
             with rasterio.open(self.datadir + self.bandname + '2.TIF') as src:
                 profile = src.profile.copy()
