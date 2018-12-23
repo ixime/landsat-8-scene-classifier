@@ -14,7 +14,11 @@ import re
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+import pickle
 
+np.random.seed(29123)
 
 class Classification:
     """Random forest Classifier for a satellite GeoTIFF raster"""
@@ -32,13 +36,13 @@ class Classification:
         self.classificationfilename = 'classification.tif'
 
     def run(self):
-        """Perform the classification and/or validation"""
+        """Perform the classification and/or cross validation"""
         def loadData(args):
             """Load the 2, 3, 4, and 5 raster bands and the training data. 
             Adding a feature from the NDVI to the raster bands is optional
 
             Args:
-                args (obj): Arguments for argparse
+                args (obj): Arguments from argparse
 
             Returns:
                 obj: Raster in Numpy ndarray
@@ -74,39 +78,56 @@ class Classification:
             ndvi = NIR - RED / (NIR + RED)
             return ndvi
 
-        def preprocessData(raster, sample):
+        def preprocessData(raster, sample, args):
             """Set same size for raster and sample and take out pixels where there is no data
-            in one of them 
+            in one of them. If n_data is equal or less than zero, it returns n_data values.
             
             Args:
                 raster (obj): Raster in Numpy ndarray
                 sample (obj): Sample in Numpy ndarray
+                args (obj): arguments from argparse
 
             Returns:
                 obj: X in Numpy ndarray
-                obj: Y in Numpy ndarray
+                obj: y in Numpy ndarray
             """
             rastertr = raster[slice(0,sample.shape[0]),slice(0,sample.shape[1]),:]
             X = rastertr[sample > 0,:]
-            Y = sample[sample > 0]
+            y = sample[sample > 0]
 
-            Y = Y[X[...,0] > 0]
+            y = y[X[...,0] > 0]
             X = X[X[...,0] > 0,:]
-            
-            return X, Y
 
-        def getPrediction(raster, X, Y):
+            slices = np.arange(y.shape[0])
+            np.random.shuffle(slices)
+            X_shuf = X[slices,:]
+            y_shuf = y[slices]
+            if args.n_data <= 0:
+                X = X_shuf
+                y = y_shuf
+            else:
+                X = X_shuf[:args.n_data,:]
+                y = y_shuf[:args.n_data]
+            
+            return X, y
+
+        def getPrediction(raster, X, y, args):
             """Train and classify raster and save the prediction as GeoTIFF in the data directory
             
             Args:
                 raster (obj): Raster in Numpy ndarray
                 X (obj): Sample in Numpy ndarray
-                Y (obj): Sample in Numpy ndarray
+                y (obj): Sample in Numpy ndarray
+                args (obj): arguments from argparse
             """
-            rfp = rf.fit(X,Y)
-            prediction = rfp.predict(raster.reshape(raster.shape[0]*raster.shape[1],raster.shape[2]))
+            X_train, X_val, y_train, y_val = train_test_split(X, y, random_state=1273483)
+            rf.fit(X_train,y_train)
+            print("Model trained successfully")
+            raster = np.nan_to_num(raster)
+            prediction = rf.predict(raster.reshape(raster.shape[0]*raster.shape[1],raster.shape[2]))
+            print("Accuracy: {}".format(metrics.accuracy_score(y_val, prediction)))
+            print(metrics.classification_report(prediction, y_val))
             prediction = prediction.reshape(raster[...,0].shape)
-
             with rasterio.open(self.datadir + self.bandname + '2.TIF') as src:
                 profile = src.profile.copy()
             profile.update(
@@ -115,35 +136,36 @@ class Classification:
                 compress='lzw')
             with rasterio.open(self.datadir + self.classificationfilename, 'w', **profile) as dst:
                 dst.write(prediction, 1)
+            print("Raster classified successfully")
+            with open(self.datadir + "model_n{}_pt{}.pkl".format(args.n_estimators,args.n_data), "wb") as f:
+                pickle.dump(rf, f)
+            print("Model saved successfully")
 
 
         parser = argparse.ArgumentParser()
         parser.add_argument("--ndvi", help="add ndvi as new feature", action="store_true")
         parser.add_argument("--classify", help="classify scene", action="store_true")
         parser.add_argument("--n_estimators", help="number of estimators for random forrest classifier", required=True, type=int)
+        parser.add_argument("--n_data", help="number of pixels for training", required=True, type=int)
         parser.add_argument("--validate", help="validate with 5 fold cross validation", action="store_true")
         args = parser.parse_args()
-        print(args.ndvi)
-        print(args.classify)
-        print(args.n_estimators)
-        print(args.validate)
+
         raster, sample = loadData(args)
-        X, Y = preprocessData(raster, sample)
+
+        X, y = preprocessData(raster, sample, args)
 
         rf = RandomForestClassifier(n_estimators = args.n_estimators)
 
-        if args.classify:
-            getPrediction(raster, X, Y)
-            print("raster classified successfully")
-
         if args.validate:
-            scores = cross_val_score(rf, X, Y, cv=5)
+            scores = cross_val_score(rf, X, y, cv=5)
             print("5 fold cross validation:")
             print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std()))
 
+        if args.classify:
+            getPrediction(raster, X, y, args)
 
 
 
 if __name__ == "__main__":
-    cl = Classification()
-    cl.run()
+    clf = Classification()
+    clf.run()

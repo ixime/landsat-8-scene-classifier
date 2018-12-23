@@ -1,4 +1,4 @@
-FROM python:3.6.5
+FROM python:3.6.6
 
 ## Environment variables
 ARG EEROW
