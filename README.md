@@ -58,6 +58,5 @@ NOTE 5: NDATA is the amount of data it is going to use for training and cross va
 ```
 docker run -it --env EEPATH=<value> --env EEROW=<value> --env EEDATE=<YYYY-MM-DD> --env NDVI=<bool> --env CLASSIFY=<bool> --env NESTIMATORS=<value> --env VALIDATE=<bool> --env NDATA=<value> --volume=`pwd`/data:/workspace/data --rm usgs-landsat-8-classifier
 ```
-When it ends, the classified raster `classification.tif` will be in the `data` directory.  
-NOTE: The files downloaded from USGS will not be in the `data` directory, just the classified raster.  
+When it ends, the classified raster `classification.tif` and if generated, the model pickle  will be in the `data` directory.  
 
