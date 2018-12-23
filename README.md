@@ -52,10 +52,11 @@ docker build --tag usgs-landsat-8-classifier:0.1 --tag usgs-landsat-8-classifier
 Run the docker  
 NOTE 1: In the following command add values to the environment variables i.e. EEDATE, EEROW, etc.   
 NOTE 2: The variables EEPATH, EEROW and EEDATE begin with EE to differentiate PATH from the PATH variable. They correspond to the row, path and date of the raster that is going to be downloaded.  
-NOTE 3: The variable NESTIMATORS corresponds to the number of trees in the forest.  
-NOTE 4: NDVI indicates if the extra feature from NDVI is going to be added for training, CLASSIFY indicates if the classified raster `classification.tif` is going to be generated and VALIDATE if 5 fold cross validation is going to be performed. In case cross validation is performed, the accuracy will be showed in terminal.  
+NOTE 3: The variable NESTIMATORS corresponds to the number of trees in the forest. If this environment variable is not added, the default value is 10.  
+NOTE 4: NDVI indicates if the extra feature from NDVI is going to be added for training. CLASSIFY indicates if the classified raster `classification.tif` is going to be generated and VALIDATE if 5 fold cross validation is going to be performed. In case cross validation is performed, the accuracy will be showed in terminal. If these environment variables are not added, then they are not performed.  
+NOTE 5: NDATA is the amount of data it is going to use for training and cross validation. If this environment variable is not added, all available data is used.  
 ```
-docker run -it --env EEPATH=<value> --env EEROW=<value> --env EEDATE=<YYYY-MM-DD> --env NDVI=<bool> --env CLASSIFY=<bool> --env NESTIMATORS=<value> --env VALIDATE=<bool> --volume=`pwd`/data:/workspace/data --rm usgs-landsat-8-classifier
+docker run -it --env EEPATH=<value> --env EEROW=<value> --env EEDATE=<YYYY-MM-DD> --env NDVI=<bool> --env CLASSIFY=<bool> --env NESTIMATORS=<value> --env VALIDATE=<bool> --env NDATA=<value> --volume=`pwd`/data:/workspace/data --rm usgs-landsat-8-classifier
 ```
 When it ends, the classified raster `classification.tif` will be in the `data` directory.  
 NOTE: The files downloaded from USGS will not be in the `data` directory, just the classified raster.  

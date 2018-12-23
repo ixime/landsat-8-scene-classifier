@@ -34,8 +34,8 @@ else
 fi
 if [ -z "$CLASSIFY" ]
 then
-    CLASSIFY="--classify"
-    echo "classify: True"
+    CLASSIFY=""
+    echo "classify: False"
 else
     if [ "$CLASSIFY" = "True" ]
     then
